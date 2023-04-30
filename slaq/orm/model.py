@@ -35,3 +35,17 @@ class Answer(BaseModel):
 
     def __repr__(self):
         return f'(Answer: {self.id}, {self.submitter_id}, {self.team_id})'
+
+
+class FAQ(BaseModel):
+    __tablename__ = "faqs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    question_str: Mapped[str] = mapped_column(String(4000))
+    answer_str: Mapped[str] = mapped_column(String(4000))
+    team_id: Mapped[str] = mapped_column(String(12))
+
+    def __repr__(self):
+        return f'(FAQ: {self.id}, {self.team_id})'
+
+

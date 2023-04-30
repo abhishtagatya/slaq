@@ -1,17 +1,12 @@
 import os
 import logging
+import re
+
 from dotenv import load_dotenv
 
-from slaq.const import (
-    ADD_FAQ_CID,
-    VIEW_QUESTION_FIELD_BID,
-    VIEW_ANSWER_FIELD_BID,
-    VIEW_ADD_FAQ_RESP,
-    VIEW_ADD_FAQ_BLOCK
-)
+from slaq.const import *
 from slaq.db import Database
-from slaq.orm.question import QuestionORM
-from slaq.orm.answer import AnswerORM
+from slaq.orm.faq import FAQORM
 from slaq.util.slack_block import BlockKit
 
 from slack_bolt import App
@@ -27,8 +22,7 @@ bot = App(
 )
 
 db = Database(database_url=os.getenv('DATABASE_URL'))
-question_orm = QuestionORM(db=db.db)
-answer_orm = AnswerORM(db=db.db)
+faq_orm = FAQORM(db=db.db)
 
 
 # Middleware
@@ -49,59 +43,42 @@ def handle_mention(body, say, logger):
 
 
 @bot.command("/add-faq")
-def handle_command(body, ack, client, logger):
-    logger.info(body)
+def handle_add_faq_command(body, ack, client, logger):
     ack(
         text="Adding new FAQ",
         blocks=VIEW_ADD_FAQ_RESP
     )
 
+    faq_modal = BlockKit.construct_faq_add_modal()
     res = client.views_open(
         trigger_id=body["trigger_id"],
-        view=VIEW_ADD_FAQ_BLOCK
+        view=faq_modal
     )
     logger.info(res)
 
 
-@bot.options("es_a")
-def show_options(ack):
-    ack({"options": [{"text": {"type": "plain_text", "text": "Maru"}, "value": "maru"}]})
-
-
-@bot.options("mes_a")
-def show_multi_options(ack):
+@bot.command("/list-faq")
+def handle_list_faq_command(body, ack, client, logger):
     ack(
-        {
-            "option_groups": [
-                {
-                    "label": {"type": "plain_text", "text": "Group 1"},
-                    "options": [
-                        {
-                            "text": {"type": "plain_text", "text": "Option 1"},
-                            "value": "1-1",
-                        },
-                        {
-                            "text": {"type": "plain_text", "text": "Option 2"},
-                            "value": "1-2",
-                        },
-                    ],
-                },
-                {
-                    "label": {"type": "plain_text", "text": "Group 2"},
-                    "options": [
-                        {
-                            "text": {"type": "plain_text", "text": "Option 1"},
-                            "value": "2-1",
-                        },
-                    ],
-                },
-            ]
-        }
+        text="Listing FAQs",
+        blocks=VIEW_LIST_FAQ_RESP
     )
+
+    logger.info(body)
+    team_id = body["team_id"]
+    faq_list = faq_orm.get_faq_by_team(team_id=team_id)
+    faq_modal = BlockKit.construct_faq_list_modal(data=faq_list)
+    logger.info(faq_list)
+
+    res = client.views_open(
+        trigger_id=body["trigger_id"],
+        view=faq_modal
+    )
+    logger.info(res)
 
 
 @bot.view(ADD_FAQ_CID)
-def add_faq_submission(ack, body, logger):
+def add_faq_submission(ack, body, client, logger):
     ack()
 
     user_id = body["user"]["id"]
@@ -111,17 +88,90 @@ def add_faq_submission(ack, body, logger):
     sub_question_field = BlockKit.get_value_from_text_input(data, VIEW_QUESTION_FIELD_BID)
     sub_answer_field = BlockKit.get_value_from_text_input(data, VIEW_ANSWER_FIELD_BID)
 
-    new_answer = answer_orm.create_new_answer(
+    faq_orm.create_new_faq(
+        question_str=sub_question_field,
         answer_str=sub_answer_field,
-        submitter_id=user_id,
         team_id=team_id
     )
-    new_question = question_orm.create_new_question(
-        question_str=sub_question_field,
-        submitter_id=user_id,
-        team_id=team_id,
-        answer_id=new_answer
+
+    logger.info(body)
+
+    client.chat_postMessage(channel=user_id, text=f":white_check_mark: New FAQ Entry has been added by you.")
+
+
+@bot.action(EDIT_FAQ_AID)
+def handle_delete_faq_action(ack, body, client, logger):
+    ack()
+    logger.info(body)
+
+    user_id = body["user"]["id"]
+    team_id = body["team"]["id"]
+    action_value = body["actions"][0]["value"]
+    _, faq_id = action_value.split("-")
+
+    select_faq = faq_orm.get_faq_by_id(uid=faq_id)
+    faq_modal = BlockKit.construct_faq_edit_modal(
+        uid=select_faq.id,
+        question=select_faq.question_str,
+        answer=select_faq.answer_str
     )
 
-    logger.info(f"Questions: {new_question}, Answer: {new_answer}")
+    res = client.views_update(
+        view_id=body["view"]["id"],
+        hash=body["view"]["hash"],
+        view=faq_modal
+    )
+
+    client.chat_postMessage(channel=user_id, text=f":white_check_mark: Edit a FAQ Entry")
+
+    logger.info(res)
+
+
+@bot.action(DELETE_FAQ_AID)
+def handle_delete_faq_action(ack, body, client, logger):
+    ack()
     logger.info(body)
+
+    user_id = body["user"]["id"]
+    team_id = body["team"]["id"]
+    action_value = body["actions"][0]["value"]
+    _, faq_id = action_value.split("-")
+
+    faq_orm.delete_faq_by_id(uid=faq_id)
+
+    client.chat_postMessage(channel=user_id, text=f":white_check_mark: Deleted a FAQ Entry")
+
+    faq_list = faq_orm.get_faq_by_team(team_id=team_id)
+    faq_modal = BlockKit.construct_faq_list_modal(data=faq_list)
+    logger.info(faq_list)
+
+    res = client.views_update(
+        view_id=body["view"]["id"],
+        hash=body["view"]["hash"],
+        view=faq_modal
+    )
+    logger.info(res)
+
+
+@bot.view(re.compile(EDIT_FAQ_CID_REGEX))
+def edit_faq_submission(ack, body, client, logger):
+    ack()
+
+    user_id = body["user"]["id"]
+    team_id = body["team"]["id"]
+    callback_id = body["view"]["callback_id"]
+    data = body["view"]["state"]["values"]
+
+    sub_question_field = BlockKit.get_value_from_text_input(data, VIEW_QUESTION_FIELD_BID)
+    sub_answer_field = BlockKit.get_value_from_text_input(data, VIEW_ANSWER_FIELD_BID)
+    _, faq_id = callback_id.split('_')
+
+    faq_orm.edit_existing_faq(
+        uid=int(faq_id),
+        question_str=sub_question_field,
+        answer_str=sub_answer_field
+    )
+
+    logger.info(body)
+
+    client.chat_postMessage(channel=user_id, text=f":white_check_mark: FAQ Entry has been edited by you.")
