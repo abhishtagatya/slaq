@@ -18,7 +18,7 @@ TEXT_DELETE_FAQ_MODAL = ":scroll: Log : FAQ Entry has been deleted by you."
 CONTROL_RESPONSE_ADDITIONAL = "\n\nDoes this answer your question? :grin:"
 CONTROL_RESPONSE_UNSURE = ":thinking_face: Hmm... I seem to be having trouble understanding your question, is it similar to any of these:\n\n"
 CONTROL_RESPONSE_UNSURE_ADDITIONAL = "\n\nIf there are, could you rephrase the question?"
-CONTROL_RESPONSE_NOT_FOUND = "Hmm.. I don't think I can answer this question, you can also check my FAQ List using the */list-faq* command. Can anyone help follow up this? :raised_hand:"
+CONTROL_RESPONSE_NOT_FOUND = "Hmm.. I don't think I can answer this question. You can also check my FAQ List using the */list-faq* command.\n\n Can anyone help follow up this? :raised_hand:"
 
 # Add FAQ Section
 VIEW_QUESTION_FIELD_BID = "question-field"

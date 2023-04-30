@@ -37,5 +37,4 @@ class QuestionST:
         q_list = [faq.question_str for faq in data]
         sen_emb = self.model.encode(target + q_list)
         sim_score = self.similarity(sen_emb)
-        print(data, sim_score)
         return self.zip_data(data, sim_score[0])[:top_n]
