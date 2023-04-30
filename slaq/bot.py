@@ -7,7 +7,9 @@ from dotenv import load_dotenv
 from slaq.const import *
 from slaq.db import Database
 from slaq.orm.faq import FAQORM
+from slaq.qa import QuestionST
 from slaq.util.slack_block import BlockKit
+from slaq.util.response import Control
 
 from slack_bolt import App
 
@@ -24,6 +26,8 @@ bot = App(
 db = Database(database_url=os.getenv('DATABASE_URL'))
 faq_orm = FAQORM(db=db.db)
 
+qa_model = QuestionST()
+
 
 # Middleware
 @bot.middleware
@@ -36,10 +40,15 @@ def log_request(logger, body, next):
 def handle_mention(body, say, logger):
     event = body["event"]
     logger.debug(event)
+    team_id = event["team"]
+    user_text = event["text"]
+
+    faq_list = faq_orm.get_faq_by_team(team_id=team_id)
+    faq_rank = qa_model.rank(target=[user_text], data=faq_list, top_n=3)
+    response = Control.answer_query(faq_rank)
 
     thread_ts = event.get("thread_ts", None) or event["ts"]
-
-    say(f"What can I do for you?", thread_ts=thread_ts)
+    say(response, thread_ts=thread_ts)
 
 
 @bot.command("/add-faq")
