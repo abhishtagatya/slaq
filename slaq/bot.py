@@ -68,7 +68,6 @@ def handle_list_faq_command(body, ack, client, logger):
     team_id = body["team_id"]
     faq_list = faq_orm.get_faq_by_team(team_id=team_id)
     faq_modal = BlockKit.construct_faq_list_modal(data=faq_list)
-    logger.info(faq_list)
 
     res = client.views_open(
         trigger_id=body["trigger_id"],
@@ -96,7 +95,7 @@ def add_faq_submission(ack, body, client, logger):
 
     logger.info(body)
 
-    client.chat_postMessage(channel=user_id, text=f":white_check_mark: New FAQ Entry has been added by you.")
+    client.chat_postMessage(channel=user_id, text=TEXT_ADD_FAQ_MODAL)
 
 
 @bot.action(EDIT_FAQ_AID)
@@ -104,8 +103,6 @@ def handle_delete_faq_action(ack, body, client, logger):
     ack()
     logger.info(body)
 
-    user_id = body["user"]["id"]
-    team_id = body["team"]["id"]
     action_value = body["actions"][0]["value"]
     _, faq_id = action_value.split("-")
 
@@ -122,8 +119,6 @@ def handle_delete_faq_action(ack, body, client, logger):
         view=faq_modal
     )
 
-    client.chat_postMessage(channel=user_id, text=f":white_check_mark: Edit a FAQ Entry")
-
     logger.info(res)
 
 
@@ -139,11 +134,10 @@ def handle_delete_faq_action(ack, body, client, logger):
 
     faq_orm.delete_faq_by_id(uid=faq_id)
 
-    client.chat_postMessage(channel=user_id, text=f":white_check_mark: Deleted a FAQ Entry")
-
     faq_list = faq_orm.get_faq_by_team(team_id=team_id)
     faq_modal = BlockKit.construct_faq_list_modal(data=faq_list)
-    logger.info(faq_list)
+
+    client.chat_postMessage(channel=user_id, text=TEXT_DELETE_FAQ_MODAL)
 
     res = client.views_update(
         view_id=body["view"]["id"],
@@ -174,7 +168,7 @@ def edit_faq_submission(ack, body, client, logger):
 
     logger.info(body)
 
-    client.chat_postMessage(channel=user_id, text=f":white_check_mark: FAQ Entry has been edited by you.")
+    client.chat_postMessage(channel=user_id, text=TEXT_EDIT_FAQ_MODAL)
 
 
 @bot.event("app_home_opened")

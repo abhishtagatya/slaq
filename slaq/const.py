@@ -11,6 +11,10 @@ MARKDOWN_BLOCK = {
     "text": ""
 }
 
+TEXT_ADD_FAQ_MODAL = ":scroll: Log : New FAQ Entry has been added by you."
+TEXT_EDIT_FAQ_MODAL = ":scroll: Log : FAQ Entry has been edited by you."
+TEXT_DELETE_FAQ_MODAL = ":scroll: Log : FAQ Entry has been deleted by you."
+
 # Add FAQ Section
 VIEW_QUESTION_FIELD_BID = "question-field"
 VIEW_ANSWER_FIELD_BID = "answer-field"
