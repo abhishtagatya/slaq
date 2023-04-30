@@ -175,3 +175,16 @@ def edit_faq_submission(ack, body, client, logger):
     logger.info(body)
 
     client.chat_postMessage(channel=user_id, text=f":white_check_mark: FAQ Entry has been edited by you.")
+
+
+@bot.event("app_home_opened")
+def update_home_tab(client, event, logger):
+    try:
+        # Call views.publish with the built-in client
+        client.views_publish(
+            # Use the user ID associated with the event
+            user_id=event["user"],
+            view=VIEW_APP_HOME_BLOCK
+        )
+    except Exception as e:
+        logger.error(f"Error publishing home tab: {e}")

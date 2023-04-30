@@ -367,3 +367,96 @@ VIEW_LIST_ANSWER_BLOCK = {
     },
     "blocks": []
 }
+
+# App Home Screen
+
+VIEW_APP_HOME_BLOCK = {
+    "type": "home",
+    "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Welcome to Slaq :speech_balloon:*"
+            }
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "plain_text",
+                    "text": "Author: Abhishta Gatya",
+                    "emoji": True
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Slaq is a tool to answer frequently-asked questions on your Workspace. All you need to do is mention *@Slaq* when asking questions <https://github.com/abhishtagatya/slaq|*Learn More*>."
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Adding FAQs*"
+            }
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "plain_text",
+                    "text": "Adding new entry of Frequently-Asked Questions",
+                    "emoji": True
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Use the */add-faq* command to open the _Add FAQ_ modal. Fill in the question and answer set for every entry you want to be easily answered."
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Managing FAQs*"
+            }
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "plain_text",
+                    "text": "Managing existing entries of Frequently-Asked Questions",
+                    "emoji": True
+                }
+            ]
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Use the */list-faq* command to open the _List FAQ_ modal. This will enlist all existing FAQs in this Workspace. You can also manage to edit or delete past entries."
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "That is all; If any issues occur please direct yourself over to the <https://github.com/abhishtagatya/slaq/issues|*Issue Page*> for further information. Thank you!"
+            }
+        }
+    ]
+}
